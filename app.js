@@ -13,7 +13,7 @@
 //  },
 //]);
 
-const todos = JSON.parse(localStorage.todos) ||  "[]";
+const todos = JSON.parse(localStorage.todos) || "[]";
 
 const appElement = document.querySelector(".todoapp");
 const addInputElement = appElement.querySelector(".new-todo");
@@ -89,18 +89,37 @@ todosContainer.addEventListener("click", function (e) {
 
   if (e.target.matches(".destroy")) {
     const index = todos.findIndex((item) => item.id == itemElement.dataset.id);
-    if (index === -1){
-    todos.splice(index, 1);
-    itemElement.remove();
-    updateLocalStorage();
-    renderNotCompletedCount();
-    renderFilteredTodos();
+    if (index === -1) {
+      todos.splice(index, 1);
+      itemElement.remove();
+      updateLocalStorage();
+      renderNotCompletedCount();
+      renderFilteredTodos();
     }
   }
 });
+// gestion du double-clic pour éditer
 
+todosContainer.addEventListener("dblclick", function (e) {
+  const itemElement = e.target.closest("li");
+  const item = todos.find((item) => item.id == itemElement.dataset.id);
+  if (e.target.matches("label")) {
+    itemElement.classList.add("editing");
+  }
+});
 
-// filtre ALL / Active / Completed 
+todosContainer.addEventListener("change", function (e) {
+  const itemElement = e.target.closest("li");
+  const item = todos.find((item) => item.id == itemElement.dataset.id);
+  if (e.target.matches(".edit")) {
+    itemElement.classList.remove("editing");
+    item.content = e.target.value;
+    itemElement.querySelector("label").innerText = item.content;
+    updateLocalStorage(); 
+  }
+});
+
+// filtre ALL / Active / Completed
 
 const filterLinks = document.querySelectorAll(".filters a");
 let currentFilter = "all"; // all | active | completed
@@ -160,3 +179,26 @@ clearCompletedBtn.addEventListener("click", function () {
   renderFilteredTodos();
 });
 
+// toggle all
+
+const toggleAllElement = document.querySelector(".toggle-all");
+
+toggleAllElement.addEventListener("change", function () {
+  const checked = this.checked;
+
+  // mettre à jour le tableau
+  todos.forEach((item) => {
+    item.completed = checked;
+  });
+
+  // mettre à jour le DOM
+  const items = todosContainer.querySelectorAll("li");
+  items.forEach((li) => {
+    li.classList.toggle("completed", checked);
+    li.querySelector(".toggle").checked = checked;
+  });
+
+  updateLocalStorage();
+  renderNotCompletedCount();
+  renderFilteredTodos();
+});
